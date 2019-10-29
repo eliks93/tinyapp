@@ -28,17 +28,26 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-app.post("/urls", (req, res) => {
+
+app.get("/urls", (req, res) => {
+  let templateVars = { urls: urlDatabase };
+  res.render("pages/urls_index", templateVars);
+});
+
+app.post("/urls/", (req, res) => {
   req.body['shortURL'] = generateRandomString()
   let shortURL = req.body.shortURL;
   urlDatabase[req.body.shortURL] = req.body.longURL;
   res.redirect('/urls/' + shortURL);      
 });
 
-app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
-  res.render("pages/urls_index", templateVars);
-});
+app.post("/urls/:shortURL/delete/", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  delete urlDatabase[templateVars.shortURL]
+  res.redirect('/urls/')
+})
+
+
 
 app.get("/urls/new", (req, res) => {
   res.render("pages/urls_new");
