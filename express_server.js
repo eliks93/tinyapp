@@ -47,7 +47,13 @@ app.post("/urls/:shortURL/delete/", (req, res) => {
   res.redirect('/urls/')
 })
 
-
+app.post("/urls/:shortURL/update/", (req, res) => {
+  console.log(req.body)
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  
+  urlDatabase[templateVars.shortURL] = req.body.longURL
+  res.redirect('/urls/')
+})
 
 app.get("/urls/new", (req, res) => {
   res.render("pages/urls_new");
@@ -64,10 +70,7 @@ app.get("/", (req, res) => {
 })
 
 app.get("/u/:shortURL", (req, res) => {
- console.log(req.params.shortURL)
- console.log(urlDatabase)
   const longURL = urlDatabase[req.params.shortURL]
-
   res.redirect(longURL);
 });
 
@@ -76,5 +79,5 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });
