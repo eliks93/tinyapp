@@ -7,6 +7,23 @@ app.use(cookieParser())
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+const urlDatabase = {
+  "b2xVn2": "http://www.lighthouselabs.ca",
+  "9sm5xK": "http://www.google.com"
+};
 
 // generates a random string
 function generateRandomString() {
@@ -24,12 +41,20 @@ function generateRandomString() {
   return string;
 }
 
+// email check function to see if it already exists in database
+// returns true if the email is already in database
+// return false if email is unique
 
+function emailLookUp (email) {
+  for(const key in users ) {
+    console.log(users[key]['email'], email)
+    if(users[key]['email'] === email) {
+      return true
+    }
+  }
+  return false
+}
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
 
 
 
@@ -90,6 +115,33 @@ app.get("/urls/new", (req, res) => {
   username: req.cookies["username"]
   }
   res.render("pages/urls_new", templateVars);
+});
+
+app.get("/urls/register", (req, res) => {
+  let templateVars = {
+  username: req.cookies["username"]
+  }
+  res.render("pages/urls_register", templateVars);
+});
+
+app.post("/urls/register", (req, res) => {
+  if(!req.body.email || !req.body.password) {
+    res.send("400 Error Status code, invalid email or password")
+  }
+  if(emailLookUp(req.body.email)) {
+    res.send("400 Error Status code, email already registered")
+  }
+  let randomID = "user" + generateRandomString();
+  console.log(typeof randomID)
+  console.log(users)
+
+  users[randomID] = {}
+  users[randomID]['id'] = randomID
+  users[randomID]['email'] = req.body.email;
+  users[randomID]['password'] = req.body.password;
+  console.log(users)
+  res.cookie('user_id', users[randomID].id)
+  res.redirect('/urls/');
 });
 
 

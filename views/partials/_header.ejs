@@ -9,6 +9,7 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        <a class="nav-item nav-link" href="/urls/register">Register</a>
       </div>
     </div>
     <% if(!username) { %>
@@ -23,7 +24,7 @@
   <div>
     <form method="POST" action= '/logout'> 
       <label for="loggedIn">You are logged in as: <%= username %></label>
-      <button type="submit" class="btn btn-primary">Logout</button>
+      <button type="submit" class="btn btn-primary" style="margin: 1em">Logout</button>
     </form> 
   </div>
   <% } %>
