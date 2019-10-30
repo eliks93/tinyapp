@@ -67,13 +67,16 @@ app.get("/urls/login/", (req, res) =>{
   res.render("pages/urls_login", templateVars)
 })
 app.get("/urls", (req, res) => {
-  
+  if(!req.cookies.user_id) {
+    res.redirect('/urls/login/')
+  } else {
   let templateVars = { 
     urls: urlDatabase,
     user_id: req.cookies.user_id,
     user: users[req.cookies.user_id]
   };
   res.render("pages/urls_index", templateVars);
+  }
 });
 
 
@@ -195,6 +198,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+
 
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
