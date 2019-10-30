@@ -8,8 +8,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
 const users = { 
-  "userRandomID": {
-    id: "userRandomID", 
+  "test1": {
+    id: "test1", 
     email: "user@example.com", 
     password: "purple-monkey-dinosaur"
   },
@@ -21,8 +21,8 @@ const users = {
 }
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: 'test1' },
+  "9sm5xK": { longURL: "http://www.google.com", userID: 'test1' }
 };
 
 // generates a random string
@@ -67,16 +67,14 @@ app.get("/urls/login/", (req, res) =>{
   res.render("pages/urls_login", templateVars)
 })
 app.get("/urls", (req, res) => {
-  if(!req.cookies.user_id) {
-    res.redirect('/urls/login/')
-  } else {
+  
   let templateVars = { 
     urls: urlDatabase,
     user_id: req.cookies.user_id,
     user: users[req.cookies.user_id]
   };
   res.render("pages/urls_index", templateVars);
-  }
+  
 });
 
 
@@ -89,10 +87,14 @@ app.post("/logout/", (req, res) => {
 })
 
 app.post("/urls/", (req, res) => {
+  let user_id = req.cookies.user_id
   req.body['shortURL'] = generateRandomString()
+  
   let shortURL = req.body.shortURL;
-  urlDatabase[req.body.shortURL] = req.body.longURL;
-  res.redirect('/urls/' + shortURL);      
+  urlDatabase[req.body.shortURL] = { longURL: req.body.longURL, userID: user_id }
+
+  console.log(urlDatabase)
+  res.redirect('/urls/' + shortURL);   
 })
 
 
@@ -157,14 +159,17 @@ app.post("/urls/login", (req, res) => {
 
 
 app.get("/urls/new", (req, res) => {
+  if(!req.cookies.user_id) {
+    res.redirect('/urls/login/')
+  } else {
   let templateVars = {
   user_id: req.cookies.user_id,
   user: users[req.cookies.user_id]
   }
 
-  console.log(templateVars.user)
-  console.log(templateVars.user_id)
+
   res.render("pages/urls_new", templateVars);
+  }
 });
 
 app.get("/urls/register", (req, res) => {
