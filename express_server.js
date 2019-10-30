@@ -47,7 +47,7 @@ function generateRandomString() {
 
 function emailLookUp (email) {
   for(const key in users ) {
-    console.log(users[key]['email'], email)
+    
     if(users[key]['email'] === email) {
       return true
     }
@@ -58,26 +58,30 @@ function emailLookUp (email) {
 
 
 
+app.get("/urls/login/", (req, res) =>{
+  let templateVars = { 
+    urls: urlDatabase,
+    user_id: req.cookies.user_id,
+    user: users[req.cookies.user_id]
+  };
+  res.render("pages/urls_login", templateVars)
+})
 app.get("/urls", (req, res) => {
   
   let templateVars = { 
     urls: urlDatabase,
-    username: req.cookies['username'] 
+    user_id: req.cookies.user_id,
+    user: users[req.cookies.user_id]
   };
   res.render("pages/urls_index", templateVars);
 });
 
-app.post("/login/", (req, res) => {
-  
-  // console.log(req.body.username)
-  res.cookie('username', req.body['username'])
-  res.redirect('/urls/')
-})
+
 
 app.post("/logout/", (req, res) => {
   
-  console.log(req.cookies)
-  res.clearCookie('username')
+ 
+  res.clearCookie('user_id')
   res.redirect('/urls/')
 })
 
@@ -97,44 +101,30 @@ app.post("/urls/:shortURL/delete/", (req, res) => {
 })
 
 app.post("/urls/:shortURL/edit/", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies['username']  };
-  console.log(templateVars)
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],  user_id: req.cookies.user_id,
+    user: users[req.cookies.user_id] };
+  
   res.redirect('/urls/' + templateVars.shortURL)
 })
 
 app.post("/urls/:shortURL/update/", (req, res) => {
-  console.log(req.body)
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies['username']  };
+  
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],  user_id: req.cookies.user_id,
+    user: users[req.cookies.user_id]  };
   
   urlDatabase[templateVars.shortURL] = req.body.longURL
   res.redirect('/urls/')
 })
 
-app.get("/urls/new", (req, res) => {
-  let templateVars = {
-  username: req.cookies["username"]
-  }
-  res.render("pages/urls_new", templateVars);
-});
-
-app.get("/urls/register", (req, res) => {
-  let templateVars = {
-  username: req.cookies["username"]
-  }
-  res.render("pages/urls_register", templateVars);
-});
-
 app.post("/urls/register", (req, res) => {
   if(!req.body.email || !req.body.password) {
-    res.send("400 Error Status code, invalid email or password")
+    res.send("400 Error Status code, invalid username or password")
   }
   if(emailLookUp(req.body.email)) {
-    res.send("400 Error Status code, email already registered")
+    res.send("400 Error Status code, email already used")
   }
   let randomID = "user" + generateRandomString();
-  console.log(typeof randomID)
-  console.log(users)
-
+  
   users[randomID] = {}
   users[randomID]['id'] = randomID
   users[randomID]['email'] = req.body.email;
@@ -144,9 +134,52 @@ app.post("/urls/register", (req, res) => {
   res.redirect('/urls/');
 });
 
+app.post("/urls/login", (req, res) => {
+  const {email, password} = req.body
+  for (const user_id in users) {
+    const user = users[user_id];
+    console.log(user)
+    if (user.email === email) {
+      if (user.password === password) {
+        // log the user in (return) res.send
+        res.cookie('user_id', user_id);
+        res.redirect('/urls/');
+        return 
+      }  
+    }
+  }
+ res.send('403, invalid password or email')
+});
+  
+
+
+app.get("/urls/new", (req, res) => {
+  let templateVars = {
+  user_id: req.cookies.user_id,
+  user: users[req.cookies.user_id]
+  }
+
+  console.log(templateVars.user)
+  console.log(templateVars.user_id)
+  res.render("pages/urls_new", templateVars);
+});
+
+app.get("/urls/register", (req, res) => {
+  let templateVars = {
+    user_id: req.cookies.user_id,
+    user: users[req.cookies.user_id]
+  }
+
+  res.render("pages/urls_register", templateVars);
+});
+
+
+
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies['username'] };
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user_id: req.cookies.user_id,
+    user: users.user_id };
+    
   res.render("pages/urls_show", templateVars);
 });
 
