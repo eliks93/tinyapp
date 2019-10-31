@@ -3,11 +3,11 @@
 const getUserByEmail = (email, database) => {
   for (const key in database) {
     if (database[key].email === email) {
-      return key
+      return key;
     }
   }
-  return false
-}
+  return false;
+};
 
 // creates a user database containing only the users short url key value pairs given an database of users and an id
 
@@ -42,12 +42,12 @@ const generateRandomString = () => {
 
 const isValid = (input) => {
   let result = input.match(/http/g);
-  if(result) {
-    return input
+  if (result) {
+    return input;
   } else {
-    return "http://" + input
+    return "http://" + input;
   }
-}
+};
 
 
 module.exports = { getUserByEmail, urlsForUser, generateRandomString, isValid };

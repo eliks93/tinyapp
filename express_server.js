@@ -12,7 +12,7 @@ app.use(cookieSession({
 }));
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
-
+//empty database objects -------->
 const users = {
  
 };
@@ -32,13 +32,11 @@ app.get("/urls/login/", (req, res) =>{
 });
 
 app.get("/urls", (req, res) => {
-  // console.log(req.cookies.user_id)
   let templateVars = {
     urls: helpers.urlsForUser(req.session.user_id, urlDatabase),
     user_id: req.session.user_id,
     user: users[req.session.user_id]
   };
-  // console.log(templateVars.urls)
   res.render("pages/urls_index", templateVars);
   
 });
@@ -60,31 +58,49 @@ app.get("/urls/register", (req, res) => {
     user_id: req.session.user_id,
     user: users[req.session.user_id]
   };
-  console.log(users)
   res.render("pages/urls_register", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   if (!req.session.user_id) {
-    res.redirect('/urls/login/');
+    res.send('401 Error Status Code: user not logged in');
+    return
+  } else if (!urlDatabase[req.params.shortURL]) {
+    res.send('404 Error Status Code, tiny url not found')
+    return
+  } else if(req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
+    res.send('401 Error Status Code, not authorized')
   } else {
-  let templateVars = { shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    user_id: req.session.user_id,
-    user: users[req.session.user_id] };
+    let templateVars = { shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user_id: req.session.user_id,
+      user: users[req.session.user_id],
+      views: urlDatabase[req.params.shortURL].viewCount };
+      
   
-  res.render("pages/urls_show", templateVars);
+    res.render("pages/urls_show", templateVars);
   }
 });
 
 app.get("/", (req, res) => {
+  if (!req.session.user_id) {
+    res.redirect('/urls/login/');
+  } else { 
   res.redirect("/urls/");
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  if (!urlDatabase[req.params.shortURL]) {
+    res.send('404 Error Status Code, tiny url not found')
+    return
+  } else {
   let url = urlDatabase[req.params.shortURL].longURL;
+  urlDatabase[req.params.shortURL].viewCount += 1
+ 
 
-  res.redirect(url)
+  res.redirect(url);
+  }
   
 });
 
@@ -97,7 +113,10 @@ app.post("/urls/", (req, res) => {
   let user_id = req.session.user_id;
   req.body['shortURL'] = helpers.generateRandomString();
   let shortURL = req.body.shortURL;
-  urlDatabase[req.body.shortURL] = { longURL: helpers.isValid(req.body.longURL), userID: user_id };
+  let date = new Date()
+  let currentDate = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`
+  urlDatabase[req.body.shortURL] = { longURL: helpers.isValid(req.body.longURL), userID: user_id, dateCreated: currentDate, viewCount: 0 };
+
   res.redirect('/urls/' + shortURL);
 });
 
@@ -135,11 +154,11 @@ app.post("/urls/:shortURL/update/", (req, res) => {
 app.post("/urls/register", (req, res) => {
   if (!req.body.email || !req.body.password) {
     res.send("400 Error Status code, invalid username or password");
-    return
+    return;
   }
   if (helpers.getUserByEmail(req.body.email, users)) {
     res.send("400 Error Status code, email already in use");
-    return
+    return;
   }
   let randomID = "user_" + helpers.generateRandomString();
   
@@ -156,17 +175,17 @@ app.post("/urls/login", (req, res) => {
   for (const user_id in users) {
     const user = users[user_id];
     if (user.email === email) {
-      if (bcrypt.compareSync(password, user.password)) {    
+      if (bcrypt.compareSync(password, user.password)) {
         req.session.user_id = users[user_id].id;
         res.redirect('/urls/');
         return;
       } else {
-        res.send('403: invalid password')
-        return
+        res.send('403: invalid password');
+        return;
       }
     } else {
-      res.send('403: invalid email')
-      return
+      res.send('403: invalid email');
+      return;
     }
   }
   res.send('401: invalid credentials, account does not exist');
