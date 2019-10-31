@@ -64,12 +64,12 @@ app.get("/urls/register", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   if (!req.session.user_id) {
     res.send('401 Error Status Code: user not logged in');
-    return
+    return;
   } else if (!urlDatabase[req.params.shortURL]) {
-    res.send('404 Error Status Code, tiny url not found')
-    return
-  } else if(req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
-    res.send('401 Error Status Code, not authorized')
+    res.send('404 Error Status Code, tiny url not found');
+    return;
+  } else if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
+    res.send('401 Error Status Code, not authorized');
   } else {
     let templateVars = { shortURL: req.params.shortURL,
       longURL: urlDatabase[req.params.shortURL].longURL,
@@ -85,21 +85,21 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/", (req, res) => {
   if (!req.session.user_id) {
     res.redirect('/urls/login/');
-  } else { 
-  res.redirect("/urls/");
+  } else {
+    res.redirect("/urls/");
   }
 });
 
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
-    res.send('404 Error Status Code, tiny url not found')
-    return
+    res.send('404 Error Status Code, tiny url not found');
+    return;
   } else {
-  let url = urlDatabase[req.params.shortURL].longURL;
-  urlDatabase[req.params.shortURL].viewCount += 1
+    let url = urlDatabase[req.params.shortURL].longURL;
+    urlDatabase[req.params.shortURL].viewCount += 1;
  
 
-  res.redirect(url);
+    res.redirect(url);
   }
   
 });
@@ -113,8 +113,8 @@ app.post("/urls/", (req, res) => {
   let user_id = req.session.user_id;
   req.body['shortURL'] = helpers.generateRandomString();
   let shortURL = req.body.shortURL;
-  let date = new Date()
-  let currentDate = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`
+  let date = new Date();
+  let currentDate = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
   urlDatabase[req.body.shortURL] = { longURL: helpers.isValid(req.body.longURL), userID: user_id, dateCreated: currentDate, viewCount: 0 };
 
   res.redirect('/urls/' + shortURL);
