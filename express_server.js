@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const helpers = require('./helpers');
+const methodOverride = require('method-override')
 app.use(cookieSession({
   name: 'session',
   keys: ['Abacdsafdsafeadfds'],
@@ -12,6 +13,7 @@ app.use(cookieSession({
 }));
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
+app.use(methodOverride('_method'))
 //empty database objects -------->
 const users = {
  
@@ -32,6 +34,7 @@ app.get("/urls/login/", (req, res) =>{
 });
 
 app.get("/urls", (req, res) => {
+  
   let templateVars = {
     urls: helpers.urlsForUser(req.session.user_id, urlDatabase),
     user_id: req.session.user_id,
@@ -75,11 +78,20 @@ app.get("/urls/:shortURL", (req, res) => {
       longURL: urlDatabase[req.params.shortURL].longURL,
       user_id: req.session.user_id,
       user: users[req.session.user_id],
-      views: urlDatabase[req.params.shortURL].viewCount };
+      views: urlDatabase[req.params.shortURL].viewCount,
+      uniqueViews: urlDatabase[req.params.shortURL].uniqueViewCount
+    };
       
   
     res.render("pages/urls_show", templateVars);
   }
+});
+
+app.get("/urls/:shortURL/edit/", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],  user_id: req.session.user_id,
+    user: users[req.session.user_id] };
+  
+  res.redirect('/urls/' + templateVars.shortURL);
 });
 
 app.get("/", (req, res) => {
@@ -91,13 +103,18 @@ app.get("/", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  if(!req.session[req.params.shortURL]) {
+      urlDatabase[req.params.shortURL].uniqueViewCount += 1;
+  } 
+    req.session[req.params.shortURL] = true;
+
   if (!urlDatabase[req.params.shortURL]) {
     res.send('404 Error Status Code, tiny url not found');
     return;
   } else {
     let url = urlDatabase[req.params.shortURL].longURL;
     urlDatabase[req.params.shortURL].viewCount += 1;
- 
+    
 
     res.redirect(url);
   }
@@ -105,7 +122,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/logout/", (req, res) => {
-  req.session = null;
+  req.session.user_id = null;
   res.redirect('/urls/');
 });
 
@@ -115,13 +132,13 @@ app.post("/urls/", (req, res) => {
   let shortURL = req.body.shortURL;
   let date = new Date();
   let currentDate = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
-  urlDatabase[req.body.shortURL] = { longURL: helpers.isValid(req.body.longURL), userID: user_id, dateCreated: currentDate, viewCount: 0 };
+  urlDatabase[req.body.shortURL] = { longURL: helpers.isValid(req.body.longURL), userID: user_id, dateCreated: currentDate, viewCount: 0, uniqueViewCount: 0};
 
   res.redirect('/urls/' + shortURL);
 });
 
-
-app.post("/urls/:shortURL/delete/", (req, res) => {
+// delete
+app.delete("/urls/:shortURL/", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   if (urlDatabase[templateVars.shortURL].userID === req.session.user_id) {
     delete urlDatabase[templateVars.shortURL];
@@ -132,14 +149,8 @@ app.post("/urls/:shortURL/delete/", (req, res) => {
   }
 });
 
-app.post("/urls/:shortURL/edit/", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],  user_id: req.session.user_id,
-    user: users[req.session.user_id] };
-  
-  res.redirect('/urls/' + templateVars.shortURL);
-});
-
-app.post("/urls/:shortURL/update/", (req, res) => {
+// put
+app.put("/urls/:shortURL/", (req, res) => {
   
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   if (urlDatabase[templateVars.shortURL].userID === req.session.user_id) {

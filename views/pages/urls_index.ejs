@@ -31,11 +31,12 @@
             <td><%= urls[url]['longURL'] %> </td>
             <td><%= urls[url]['dateCreated']%></td>
             <td><%= urls[url]['viewCount']%></td>
+            <td><%= urls[url]['uniqueViewCount']%></td>
             <td> 
-              <form method="POST" action= <%= "/urls/" + url + "/edit/" %> </form><button type="submit" class="btn btn-outline-primary">Edit</button></form>
+              <form method="GET" action= <%= "/urls/" + url + "/edit/" %> </form><button type="submit" class="btn btn-outline-primary">Edit</button></form>
             </td>
             <td>
-              <form method="POST" action= <%= "/urls/" + url + "/delete/" %> </form><button type="submit" class="btn btn-outline-danger">Delete</button></form>
+              <form method="POST" action= <%= "/urls/" + url + "?_method=DELETE" %> </form><button type="submit" class="btn btn-outline-danger">Delete</button></form>
             </td>
            
           </tr>

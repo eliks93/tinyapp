@@ -14,10 +14,11 @@
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
         <p class="card-text">This URL has been viewed <%=views%> times</p>
+        <p class="card-text">This URL has had <%=uniqueViews%> unqiue visitors</p>
       </div>
     <div class="card-footer text-muted">
       <h2>Edit</h5>
-      <form method="POST" action=<%= "/urls/" + shortURL + "/update/" %>
+      <form method="POST" action=<%= "/urls/" + shortURL + "?_method=PUT" %>
         <label for="longURL">Enter an updated URL:</label>
         <input type="text" name="longURL" placeholder="http://" style="width: 300px;">
         <button type="submit" class="btn btn-primary">Update</button>
